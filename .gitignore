@@ -1,0 +1,49 @@
+# 敏感配置文件
+config/.env
+config/.env.txt
+.env
+.env.local
+.env.*.local
+
+# 依赖包
+node_modules/
+
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 构建输出
+dist/
+build/
+output/
+
+# 临时文件
+*.swp
+*.swo
+*.tmp
+.cache/
+
+# IDE配置
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 测试覆盖率
+coverage/
+*.lcov
+
+# 编码工作区（可选，包含生成的代码）
+coding_workspace/

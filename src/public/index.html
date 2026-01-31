@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow-AI - 个人AGI工作流管理系统</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin: 10px 0 0;
+            font-size: 1.1em;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+        
+        #workflow-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .workflow-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+        
+        .workflow-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .workflow-item h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2em;
+        }
+        
+        .workflow-steps {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        #execute-form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #execute-form input, #execute-form textarea {
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+        
+        #execute-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        #execute-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #execute-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        /* 加载动画样式 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        #history-container {
+            margin-top: 15px;
+        }
+        
+        #history-container ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #history-container li {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #history-container li:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #history-container .history-time {
+            font-size: 0.8em;
+            color: #999;
+        }
+        
+        #history-container .history-status {
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+        
+        #history-container .history-status.success {
+            color: #28a745;
+        }
+        
+        #history-container .history-status.error {
+            color: #dc3545;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Workflow-AI</h1>
+            <p class="subtitle">基于SOP Engineering的个人AGI工作流管理系统</p>
+        </header>
+        
+        <div class="dashboard">
+            <!-- 工作流列表 -->
+            <div class="card">
+                <h2>可用工作流</h2>
+                <ul id="workflow-list">
+                    <li class="loading-container"><div class="loading"></div></li>
+                </ul>
+            </div>
+            
+            <!-- 执行工作流 -->
+            <div class="card">
+                <h2>执行工作流</h2>
+                <form id="execute-form">
+                    <input type="text" id="workflow-name" placeholder="工作流名称" required>
+                    <textarea id="workflow-context" placeholder="执行上下文（JSON格式）"></textarea>
+                    <button type="submit" id="execute-btn">执行工作流</button>
+                </form>
+                
+                <div id="status" class="status-info">系统准备就绪</div>
+                
+                <div id="result">
+                    <!-- 执行结果将显示在这里 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 执行历史 -->
+        <div class="card">
+            <h2>执行历史</h2>
+            <button id="load-history-btn" style="padding: 10px 15px; margin-bottom: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                加载执行历史
+            </button>
+            <div id="history-container">
+                <div style="text-align: center; color: #999;">点击按钮加载执行历史</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWorkflows();
+            setupEventListeners();
+        });
+        
+        // 加载工作流列表
+        async function loadWorkflows() {
+            const workflowList = document.getElementById('workflow-list');
+            updateStatus('正在加载工作流列表...', 'info');
+            
+            try {
+                const response = await fetch('/api/workflows');
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status} - ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.workflows || data.workflows.length === 0) {
+                    workflowList.innerHTML = '<li style="text-align: center; color: #999; padding: 20px;">没有可用的工作流</li>';
+                    updateStatus('没有找到可用的工作流', 'info');
+                    return;
+                }
+                
+                workflowList.innerHTML = '';
+                
+                data.workflows.forEach(workflow => {
+                    const li = document.createElement('li');
+                    li.className = 'workflow-item';
+                    
+                    const steps = workflow.steps.map(step => step.name).join(', ');
+                    
+                    li.innerHTML = `
+                        <h3>${workflow.name}</h3>
+                        <div class="workflow-steps">步骤：${steps}</div>
+                    `;
+                    
+                    // 点击工作流项时自动填充表单
+                    li.addEventListener('click', () => {
+                        document.getElementById('workflow-name').value = workflow.name;
+                    });
+                    
+                    workflowList.appendChild(li);
+                });
+                
+                updateStatus('工作流列表加载完成', 'success');
+            } catch (error) {
+                console.error('加载工作流列表出错:', error);
+                workflowList.innerHTML = '<li style="text-align: center; color: #dc3545; padding: 20px;">加载工作流出错</li>';
+                updateStatus(`加载工作流列表失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            const executeForm = document.getElementById('execute-form');
+            executeForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await executeWorkflow();
+            });
+            
+            // 添加执行历史按钮事件
+            const loadHistoryBtn = document.getElementById('load-history-btn');
+            if (loadHistoryBtn) {
+                loadHistoryBtn.addEventListener('click', async () => {
+                    await loadExecutionHistory();
+                });
+            }
+        }
+        
+        // 执行工作流
+        async function executeWorkflow() {
+            const workflowName = document.getElementById('workflow-name').value;
+            const contextText = document.getElementById('workflow-context').value;
+            
+            if (!workflowName) {
+                updateStatus('请输入工作流名称', 'error');
+                return;
+            }
+            
+            let context = {};
+            if (contextText) {
+                try {
+                    context = JSON.parse(contextText);
+                } catch (error) {
+                    updateStatus('上下文格式错误: ' + error.message, 'error');
+                    return;
+                }
+            }
+            
+            updateStatus('正在执行工作流...', 'info');
+            document.getElementById('result').textContent = '正在执行，请稍候...';
+            
+            try {
+                const response = await fetch('/api/execute-workflow', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        workflowName,
+                        context
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status} - ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStatus('工作流执行成功', 'success');
+                    document.getElementById('result').textContent = JSON.stringify(data.result, null, 2);
+                    // 执行完成后刷新历史记录
+                    await loadExecutionHistory();
+                } else {
+                    updateStatus('工作流执行失败: ' + (data.error || '未知错误'), 'error');
+                    document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                console.error('执行工作流出错:', error);
+                updateStatus('执行工作流失败: ' + error.message, 'error');
+                document.getElementById('result').textContent = error.message;
+            }
+        }
+        
+        // 加载执行历史
+        async function loadExecutionHistory() {
+            const historyContainer = document.getElementById('history-container');
+            historyContainer.innerHTML = '<div class="loading-container"><div class="loading"></div></div>';
+            
+            try {
+                const response = await fetch('/api/execution-history');
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status} - ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.history || data.history.length === 0) {
+                    historyContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">没有执行历史记录</div>';
+                    return;
+                }
+                
+                // 渲染执行历史
+                const historyList = document.createElement('ul');
+                
+                data.history.forEach(item => {
+                    const li = document.createElement('li');
+                    
+                    const workflowName = document.createElement('div');
+                    workflowName.style.fontWeight = 'bold';
+                    workflowName.style.color = '#333';
+                    workflowName.textContent = item.workflowName;
+                    
+                    const status = document.createElement('div');
+                    status.className = `history-status ${item.status === 'success' ? 'success' : 'error'}`;
+                    status.textContent = `状态: ${item.status}`;
+                    
+                    const time = document.createElement('div');
+                    time.className = 'history-time';
+                    time.textContent = new Date(item.timestamp).toLocaleString();
+                    
+                    li.appendChild(workflowName);
+                    li.appendChild(status);
+                    li.appendChild(time);
+                    
+                    // 添加点击查看详情功能
+                    li.addEventListener('click', () => {
+                        document.getElementById('workflow-name').value = item.workflowName;
+                        if (item.context) {
+                            document.getElementById('workflow-context').value = JSON.stringify(item.context, null, 2);
+                        }
+                        if (item.result) {
+                            document.getElementById('result').textContent = JSON.stringify(item.result, null, 2);
+                        }
+                    });
+                    
+                    historyList.appendChild(li);
+                });
+                
+                historyContainer.innerHTML = '';
+                historyContainer.appendChild(historyList);
+            } catch (error) {
+                console.error('加载执行历史出错:', error);
+                historyContainer.innerHTML = `<div style="text-align: center; color: #dc3545; padding: 20px;">加载历史失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 更新状态
+        function updateStatus(message, type = 'info') {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = message;
+            statusElement.className = `status-${type}`;
+        }
+    </script>
+</body>
+</html>
